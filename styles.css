@@ -1,0 +1,52 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 62.5%;
+}
+
+body {
+  margin: 0;
+}
+
+.wrapper {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  display: flex;
+}
+
+.grid {
+  background-size: var(--grid-cell-size) var(--grid-cell-size);
+  background-image: linear-gradient(to right, grey 0.1rem, transparent 0.1rem),
+    linear-gradient(to bottom, grey 0.1rem, transparent 0.1rem);
+  position: relative;
+}
+
+.grid__drop-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 9rem;
+  height: 3rem;
+  background: red;
+}
+
+.grid__drop-indicator--hidden {
+  display: none;
+}
+
+.dock {
+  background: lightgrey;
+  position: relative;
+}
+
+.ship {
+  background: rgba(0, 0, 0, 0.5);
+  position: absolute;
+}
