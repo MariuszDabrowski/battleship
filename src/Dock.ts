@@ -2,12 +2,14 @@ import Ship from './Ship';
 import { Game } from './index';
 
 export default class Dock {
-  element = document.querySelector('.dock') as HTMLDivElement;
-  shipSpacing = Game.gridCellSize * 0.75;
+  public element = document.querySelector('.dock') as HTMLDivElement;
+  private shipSpacing = Game.gridCellSize * 0.75;
 
-  constructor() {}
+  // -------------
+  // Populate dock
+  // -------------
 
-  populateDock(ships: Ship[]) {
+  public populateDock(ships: Ship[]) {
     // Update dock dimensions
     const verticalPadding = (ships.length + 1) * this.shipSpacing;
     const verticalShipSize =
@@ -24,14 +26,14 @@ export default class Dock {
 
     // Populate with ships
     ships.forEach((ship, index) => {
-      // Figure out the position for each ship
+      // Figure out the x, y position of where the ship will live
       ship.relativePosition.x = this.shipSpacing;
       ship.relativePosition.y =
         this.shipSpacing * (index + 1) +
         ship.size[1] * Game.gridCellSize * index;
       ship.lastValidPosition = { ...ship.relativePosition };
 
-      // Update element position
+      // Move the ship into place
       ship.element.style.left = `${ship.relativePosition.x}px`;
       ship.element.style.top = `${ship.relativePosition.y}px`;
 

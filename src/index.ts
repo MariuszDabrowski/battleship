@@ -11,6 +11,9 @@ import Grid from './Grid';
 // Todo:
 // - Change ship size to an object for easier reading
 // - Refactor checkIfShipIsOverGrid method
+// - Figure out why gridCellSize only works when it's static
+// - Change items from using position absolute to transform translate
+// - Refactor some of the methods to remove side effects
 
 export class Game {
   static gridCellSize = 30;
@@ -25,8 +28,11 @@ export class Game {
     this.grid = new Grid();
   }
 
+  // --------------
+  // Generate ships
+  // --------------
+
   generateShips() {
-    // Generate player ships
     this.ships.push(new Ship([3, 1]));
     this.ships.push(new Ship([4, 1]));
 

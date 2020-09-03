@@ -15,6 +15,10 @@ export default class Grid {
     left: 0,
   };
 
+  // -----------
+  // Constructor
+  // -----------
+
   constructor() {
     // Set the CSS grid size
     document.documentElement.style.setProperty(
@@ -50,16 +54,28 @@ export default class Grid {
     };
   }
 
-  updateDropInidcatorSize(width: number, height: number) {
-    this.dropIndicatorElement.style.width = `${width}px`;
-    this.dropIndicatorElement.style.width = `${height}px`;
+  // --------------------------
+  // Update drop indicator size
+  // --------------------------
+
+  updateDropInidcatorSize(length: number, width: number) {
+    this.dropIndicatorElement.style.width = `${length}px`;
+    this.dropIndicatorElement.style.height = `${width}px`;
   }
+
+  // --------------------------------------------------
+  // Update drop indicator position and make it visible
+  // --------------------------------------------------
 
   showDropIndicator(x: number, y: number) {
     this.dropIndicatorElement.classList.remove('grid__drop-indicator--hidden');
     this.dropIndicatorElement.style.left = `${x}px`;
     this.dropIndicatorElement.style.top = `${y}px`;
   }
+
+  // -----------------------
+  // Hide the drop indicator
+  // -----------------------
 
   hideDropIndicator() {
     this.dropIndicatorElement.classList.add('grid__drop-indicator--hidden');

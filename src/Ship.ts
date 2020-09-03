@@ -7,12 +7,21 @@ export default class Ship {
   public lastValidPosition = { x: 0, y: 0 };
   public shipOverGrid = false;
   private validSpace = false;
+  private arrayCoordinates: [col: number, row: number] = [];
+
+  // -----------
+  // Constructor
+  // -----------
 
   constructor(public size: [length: number, width: number]) {
     this.createShipDiv();
     this.draggingShip = this.draggingShip.bind(this);
     this.dropShip = this.dropShip.bind(this);
   }
+
+  // ---------------
+  // Create ship div
+  // ---------------
 
   private createShipDiv() {
     const div = document.createElement('div');
@@ -23,6 +32,10 @@ export default class Ship {
     this.element = div;
   }
 
+  // -----------
+  // Pickup ship
+  // -----------
+
   private pickupShip(e: MouseEvent) {
     e.preventDefault();
 
@@ -31,16 +44,24 @@ export default class Ship {
 
     this.relativePosition.x = Math.abs(this.element.offsetLeft - e.clientX);
     this.relativePosition.y = Math.abs(this.element.offsetTop - e.clientY);
+
+    this.element.classList.add('ship--picked-up');
   }
+
+  // --------------------
+  // Update ship position
+  // --------------------
 
   private updateShipsPosition(x: number, y: number) {
     this.element.style.left = `${x}px`;
     this.element.style.top = `${y}px`;
   }
 
-  private draggingShip(e: MouseEvent) {
-    console.log(this.shipOverGrid);
+  // -------------
+  // Dragging ship
+  // -------------
 
+  private draggingShip(e: MouseEvent) {
     this.updatePositionCoordinates();
     this.checkIfShipIsOverGrid();
     this.updateShipsPosition(
@@ -48,16 +69,29 @@ export default class Ship {
       e.clientY - this.relativePosition.y
     );
 
-    // Convert the ships position to array coordinates
     if (this.shipOverGrid) {
+      // Convert the ships position to array coordinates
       this.convertPositionToCoordinates();
-      game.grid.updateDropInidcatorSize(100, 100);
-      game.grid.showDropIndicator(0, 0);
+
+      // Show the drop indicator
+      game.grid.updateDropInidcatorSize(
+        this.size[0] * Game.gridCellSize,
+        this.size[1] * Game.gridCellSize
+      );
+      game.grid.showDropIndicator(
+        this.arrayCoordinates[0] * Game.gridCellSize,
+        this.arrayCoordinates[1] * Game.gridCellSize
+      );
+    } else {
+      game.grid.hideDropIndicator();
     }
     // Check to see if this is a valid spot
-    // Create a indicator on the grid
     // On drop update the current and lastGood pos to current
   }
+
+  // ---------
+  // Drop ship
+  // ---------
 
   private dropShip(e: MouseEvent) {
     document.removeEventListener('mousemove', this.draggingShip);
@@ -71,12 +105,22 @@ export default class Ship {
     }
 
     game.grid.hideDropIndicator();
+
+    this.element.classList.remove('ship--picked-up');
   }
+
+  // --------------------------------
+  // Update ship position coordinates
+  // --------------------------------
 
   private updatePositionCoordinates() {
     this.position.x = this.element.offsetLeft + game.dock.element.offsetLeft;
     this.position.y = this.element.offsetTop + game.dock.element.offsetTop;
   }
+
+  // ------------------------------
+  // Check if ship is over the grid
+  // ------------------------------
 
   private checkIfShipIsOverGrid() {
     const shipWidth = this.size[0] * Game.gridCellSize;
@@ -96,22 +140,14 @@ export default class Ship {
     }
   }
 
-  private convertPositionToCoordinates() {
-    console.log(
-      this.position.x,
-      this.position.y,
-      '---',
-      game.grid.position.x,
-      game.grid.position.y,
-      '---',
-      game.grid.bounds.left,
-      game.grid.bounds.top
-    );
+  // -------------------------------------
+  // Convert position to array coordinates
+  // -------------------------------------
 
-    //
-    // console.log(
-    //   Math.round((this.position.x - game.grid.position.x) / Game.gridCellSize),
-    //   Math.round((this.position.y - game.grid.position.y) / Game.gridCellSize)
-    // );
+  private convertPositionToCoordinates() {
+    this.arrayCoordinates = [
+      Math.round((this.position.x - game.grid.position.x) / Game.gridCellSize),
+      Math.round((this.position.y - game.grid.position.y) / Game.gridCellSize),
+    ];
   }
 }
