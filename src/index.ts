@@ -14,9 +14,12 @@ import Grid from './Grid';
 // - Figure out why gridCellSize only works when it's static
 // - Change items from using position absolute to transform translate
 // - Refactor some of the methods to remove side effects
+// - Only fire one function on move, test to see if value has changed before firing all
 
 export class Game {
-  static gridCellSize = 30;
+  static boardSize = { cellsWide: 10, cellsHigh: 14 };
+  static gridCellSize = 40;
+
   ships: Ship[] = [];
   dock = new Dock();
   grid: Grid;

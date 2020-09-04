@@ -28,28 +28,27 @@ export default class Grid {
 
     // Set grid width and height
     this.element.style.width = `${
-      this.size.cellsWide * Game.gridCellSize + 1 // 1 extra pixel to close our grid border
+      Game.boardSize.cellsWide * Game.gridCellSize + 1 // 1 extra pixel to close our grid border
     }px`;
     this.element.style.height = `${
-      this.size.cellsHigh * Game.gridCellSize + 1
+      Game.boardSize.cellsHigh * Game.gridCellSize + 1
     }px`;
 
     // Generate grid array
-    this.array = new Array(this.size.cellsHigh).fill(
-      new Array(this.size.cellsWide).fill(0)
+    this.array = new Array(Game.boardSize.cellsHigh).fill(
+      new Array(Game.boardSize.cellsWide).fill(0)
     );
 
     // Get grid x, y position in document
     const gridRect = this.element.getBoundingClientRect();
-    console.log(gridRect);
     this.position.x = gridRect.x;
     this.position.y = gridRect.y;
 
     // Update the grid bounds
     this.bounds = {
       top: this.position.y,
-      right: this.position.x + this.size.cellsWide * Game.gridCellSize,
-      bottom: this.position.y + this.size.cellsHigh * Game.gridCellSize,
+      right: this.position.x + Game.boardSize.cellsWide * Game.gridCellSize,
+      bottom: this.position.y + Game.boardSize.cellsHigh * Game.gridCellSize,
       left: this.position.x,
     };
   }
@@ -79,5 +78,26 @@ export default class Grid {
 
   hideDropIndicator() {
     this.dropIndicatorElement.classList.add('grid__drop-indicator--hidden');
+  }
+
+  //
+  //
+  //
+
+  verifySpot(coordinates: [col: number, row: number][]) {
+    let result = true;
+
+    for (let i = 0; i < coordinates.length; i++) {
+      const [x, y] = coordinates[i];
+
+      if (this.array[x][y]) {
+        result = false;
+        break;
+      }
+    }
+
+    console.log(result);
+
+    return result;
   }
 }

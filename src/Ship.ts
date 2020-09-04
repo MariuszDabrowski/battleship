@@ -7,7 +7,8 @@ export default class Ship {
   public lastValidPosition = { x: 0, y: 0 };
   public shipOverGrid = false;
   private validSpace = false;
-  private arrayCoordinates: [col: number, row: number] = [];
+  private arrayCoordinates: [col: number, row: number] = [0, 0];
+  private gridSpotChanged = true; // To prevent too many function fires on mouse move, we only update when we hover over a new cell
 
   // -----------
   // Constructor
@@ -39,12 +40,14 @@ export default class Ship {
   private pickupShip(e: MouseEvent) {
     e.preventDefault();
 
+    // Enable ability to move the ship
     document.addEventListener('mousemove', this.draggingShip);
     document.addEventListener('mouseup', this.dropShip);
 
+    //
     this.relativePosition.x = Math.abs(this.element.offsetLeft - e.clientX);
     this.relativePosition.y = Math.abs(this.element.offsetTop - e.clientY);
-
+    console.log(this.relativePosition);
     this.element.classList.add('ship--picked-up');
   }
 
@@ -73,16 +76,25 @@ export default class Ship {
       // Convert the ships position to array coordinates
       this.convertPositionToCoordinates();
 
-      // Show the drop indicator
-      game.grid.updateDropInidcatorSize(
-        this.size[0] * Game.gridCellSize,
-        this.size[1] * Game.gridCellSize
-      );
-      game.grid.showDropIndicator(
-        this.arrayCoordinates[0] * Game.gridCellSize,
-        this.arrayCoordinates[1] * Game.gridCellSize
-      );
+      // Only update if we hovered over a new grid spot, this is to prevent too many funciton fires on mouse move
+      if (this.gridSpotChanged) {
+        this.gridSpotChanged = false;
+
+        // Check if spot to drop the boat is valid
+        this.checkIfValidSpot();
+
+        // Show the drop indicator
+        game.grid.updateDropInidcatorSize(
+          this.size[0] * Game.gridCellSize,
+          this.size[1] * Game.gridCellSize
+        );
+        game.grid.showDropIndicator(
+          this.arrayCoordinates[0] * Game.gridCellSize,
+          this.arrayCoordinates[1] * Game.gridCellSize
+        );
+      }
     } else {
+      this.validSpace = false;
       game.grid.hideDropIndicator();
     }
     // Check to see if this is a valid spot
@@ -99,7 +111,17 @@ export default class Ship {
 
     if (this.validSpace) {
       console.log('update ship position');
+
+      // const x = this.relativePosition[0];
+      // const y = this.relativePosition[1];
+
+      console.log(this.relativePosition);
+
+      // this.element.style.left = `${x}px`;
+      // this.element.style.top = `${y}px`;
     } else {
+      console.log(this.relativePosition);
+
       this.element.style.left = `${this.lastValidPosition.x}px`;
       this.element.style.top = `${this.lastValidPosition.y}px`;
     }
@@ -145,9 +167,36 @@ export default class Ship {
   // -------------------------------------
 
   private convertPositionToCoordinates() {
-    this.arrayCoordinates = [
-      Math.round((this.position.x - game.grid.position.x) / Game.gridCellSize),
-      Math.round((this.position.y - game.grid.position.y) / Game.gridCellSize),
-    ];
+    const x = Math.abs(
+      Math.round((this.position.x - game.grid.position.x) / Game.gridCellSize)
+    );
+    const y = Math.abs(
+      Math.round((this.position.y - game.grid.position.y) / Game.gridCellSize)
+    );
+
+    // Check to see if we're hovering over a new grid spot
+    if (this.arrayCoordinates[0] !== x || this.arrayCoordinates[1] !== y) {
+      this.gridSpotChanged = true;
+    }
+
+    this.arrayCoordinates = [x, y];
+  }
+
+  // -------------------------------------------------------
+  // Check is spot the ship is over is a valid place to drop
+  // -------------------------------------------------------
+
+  private checkIfValidSpot() {
+    // Get the grid spots the boat is occupying
+    const occupyingSpots = [];
+
+    for (let i = 0; i < this.size[0]; i++) {
+      occupyingSpots.push([
+        this.arrayCoordinates[1],
+        this.arrayCoordinates[0] + i,
+      ]);
+    }
+
+    this.validSpace = game.grid.verifySpot(occupyingSpots);
   }
 }
