@@ -9,7 +9,12 @@ html {
 body {
   margin: 0;
   background: #fff;
+  overflow: hidden;
 }
+
+/* --------- */
+/* Structure */
+/* --------- */
 
 .wrapper {
   height: 100vh;
@@ -20,64 +25,48 @@ body {
 
 .container {
   display: flex;
+  align-items: flex-start;
 }
 
-.ocean {
-  border-top-left-radius: 4px;
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
-  overflow: hidden;
+/* ---- */
+/* Grid */
+/* ---- */
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  border: 10px solid rgb(33, 33, 33);
+  box-sizing: content-box;
   background-image: linear-gradient(45deg, #2b61d7, #65c9ff);
 }
 
-.grid {
-  position: relative;
-  background-size: var(--grid-cell-size) var(--grid-cell-size);
-  background-image: linear-gradient(
-      to right,
-      rgba(0, 0, 0, 0.4) 0.1rem,
-      transparent 0.1rem
-    ),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.4) 0.1rem, transparent 0.1rem);
+.grid__cell {
+  width: var(--grid-cell-size);
+  height: var(--grid-cell-size);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+  border-right: 1px solid rgba(0, 0, 0, 0.4);
 }
 
-.grid__drop-indicator {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 9rem;
-  height: 3rem;
-}
-
-.grid__drop-indicator::after {
-  content: '';
-  width: calc(100% + 1px);
-  height: calc(100% + 1px);
-  position: absolute;
-  top: 0;
-  left: 0;
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.grid__drop-indicator--hidden {
-  display: none;
-}
+/* ---- */
+/* Dock */
+/* ---- */
 
 .dock {
-  background: #0c9dd5;
-  position: relative;
-  border-top-right-radius: 4px;
-  border-bottom-right-radius: 4px;
-  box-sizing: content-box;
+  background: #d3dcdf;
+  border-top-right-radius: 0.4rem;
+  border-bottom-right-radius: 0.4rem;
+  padding: 2rem;
 }
+
+/* ---- */
+/* Ship */
+/* ---- */
 
 .ship {
-  background: #afdaf7;
-  position: absolute;
+  background: #282c2e;
   border-radius: 50% 10% 10% 50%;
-  transition: opacity 0.2s;
 }
 
-.ship--picked-up {
-  opacity: 0.5;
+.ship + .ship {
+  margin-top: 2rem;
 }

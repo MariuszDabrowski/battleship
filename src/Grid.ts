@@ -1,19 +1,11 @@
-import { Game } from './index';
+import { Game } from './Game';
+import { game } from './index';
 
 export default class Grid {
   element = document.querySelector('.grid') as HTMLDivElement;
-  dropIndicatorElement = document.querySelector(
-    '.grid__drop-indicator'
-  ) as HTMLDivElement;
-  size = { cellsWide: 10, cellsHigh: 10 };
-  position = { x: 0, y: 0 };
+  cellElements: HTMLDivElement[] = [];
+  leadCell: HTMLDivElement;
   array = [];
-  bounds = {
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-  };
 
   // -----------
   // Constructor
@@ -21,83 +13,95 @@ export default class Grid {
 
   constructor() {
     // Set the CSS grid size
-    document.documentElement.style.setProperty(
-      '--grid-cell-size',
-      `${Game.gridCellSize / 10}rem`
-    );
+    document.documentElement.style.setProperty('--grid-cell-size', `${Game.gridCellSize}px`);
 
     // Set grid width and height
-    this.element.style.width = `${
-      Game.boardSize.cellsWide * Game.gridCellSize + 1 // 1 extra pixel to close our grid border
-    }px`;
-    this.element.style.height = `${
-      Game.boardSize.cellsHigh * Game.gridCellSize + 1
-    }px`;
+    this.element.style.width = `${Game.boardSize.cellsWide * Game.gridCellSize}px`;
+    this.element.style.height = `${Game.boardSize.cellsHigh * Game.gridCellSize}px`;
 
-    // Generate grid array
+    // // Generate grid array
     this.array = new Array(Game.boardSize.cellsHigh).fill(
       new Array(Game.boardSize.cellsWide).fill(0)
     );
 
-    // Get grid x, y position in document
-    const gridRect = this.element.getBoundingClientRect();
-    this.position.x = gridRect.x;
-    this.position.y = gridRect.y;
-
-    // Update the grid bounds
-    this.bounds = {
-      top: this.position.y,
-      right: this.position.x + Game.boardSize.cellsWide * Game.gridCellSize,
-      bottom: this.position.y + Game.boardSize.cellsHigh * Game.gridCellSize,
-      left: this.position.x,
-    };
+    this.generateCells();
   }
 
-  // --------------------------
-  // Update drop indicator size
-  // --------------------------
+  // -------------------
+  // Generate grid cells
+  // -------------------
 
-  updateDropInidcatorSize(length: number, width: number) {
-    this.dropIndicatorElement.style.width = `${length}px`;
-    this.dropIndicatorElement.style.height = `${width}px`;
+  private generateCells() {
+    let gridCells = new DocumentFragment();
+
+    // Generate grid cells
+    for (let i = 0; i < Game.boardSize.cellsWide * Game.boardSize.cellsHigh; i++) {
+      const gridCell = document.createElement('div');
+      gridCell.classList.add('grid__cell');
+      gridCell.setAttribute('row', Math.floor(i / Game.boardSize.cellsWide).toString());
+      gridCell.setAttribute('col', (i % Game.boardSize.cellsWide).toString());
+
+      this.cellElements.push(gridCell);
+
+      gridCell.addEventListener('mouseenter', this.cellEnter.bind(this));
+      gridCell.addEventListener('mouseleave', this.cellLeave.bind(this));
+
+      gridCells.appendChild(gridCell);
+    }
+
+    this.element.appendChild(gridCells);
   }
 
-  // --------------------------------------------------
-  // Update drop indicator position and make it visible
-  // --------------------------------------------------
+  // ----------
+  // Cell Hover
+  // ----------
 
-  showDropIndicator(x: number, y: number) {
-    this.dropIndicatorElement.classList.remove('grid__drop-indicator--hidden');
-    this.dropIndicatorElement.style.left = `${x}px`;
-    this.dropIndicatorElement.style.top = `${y}px`;
+  private cellEnter(e: MouseEvent) {
+    if (!game.activeShip) return;
+
+    this.validateDropSite(e);
   }
 
-  // -----------------------
-  // Hide the drop indicator
-  // -----------------------
+  // --------------
+  // Cell hover out
+  // --------------
 
-  hideDropIndicator() {
-    this.dropIndicatorElement.classList.add('grid__drop-indicator--hidden');
+  private cellLeave(e: MouseEvent) {
+    if (!game.activeShip) return;
+
+    const relatedTarget = e.relatedTarget as HTMLDivElement;
+    if (!relatedTarget.classList.contains('grid__cell')) {
+      game.activeShip.validSpaceToDrop = false;
+    }
   }
 
-  //
-  //
-  //
+  // ------------------
+  // Validate drop site
+  // ------------------
 
-  verifySpot(coordinates: [col: number, row: number][]) {
-    let result = true;
+  private validateDropSite(e: MouseEvent) {
+    const target = e.target as HTMLDivElement;
+    const row = Number(target.getAttribute('row'));
+    const col = Number(target.getAttribute('col'));
 
-    for (let i = 0; i < coordinates.length; i++) {
-      const [x, y] = coordinates[i];
+    // Check if valid place to put down
+    let validSpot = true;
+    const cellsToSelect = game.activeShip.cellsToSelect;
 
-      if (this.array[x][y]) {
-        result = false;
+    for (let i = 0; i < cellsToSelect.length; i++) {
+      if (this.array[row][col + cellsToSelect[i]] !== 0) {
+        validSpot = false;
         break;
       }
     }
 
-    console.log(result);
+    if (validSpot) {
+      // Get a reference to the lead cell
+      this.leadCell = this.cellElements[row * Game.boardSize.cellsWide + col + cellsToSelect[0]];
 
-    return result;
+      game.activeShip.validSpaceToDrop = true;
+    } else {
+      game.activeShip.validSpaceToDrop = false;
+    }
   }
 }
