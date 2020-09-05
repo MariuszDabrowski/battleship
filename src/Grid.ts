@@ -2,10 +2,11 @@ import { Game } from './Game';
 import { game } from './index';
 
 export default class Grid {
-  element = document.querySelector('.grid') as HTMLDivElement;
-  cellElements: HTMLDivElement[] = [];
-  leadCell: HTMLDivElement;
-  array = [];
+  public element = document.querySelector('.grid') as HTMLDivElement;
+  public cellElements: HTMLDivElement[] = [];
+  public array = [];
+  public occupyingCellElements: HTMLDivElement[] = [];
+  public occupyingCoordinates: { row: number; col: number }[] = [];
 
   // -----------
   // Constructor
@@ -20,9 +21,10 @@ export default class Grid {
     this.element.style.height = `${Game.boardSize.cellsHigh * Game.gridCellSize}px`;
 
     // // Generate grid array
-    this.array = new Array(Game.boardSize.cellsHigh).fill(
-      new Array(Game.boardSize.cellsWide).fill(0)
-    );
+    this.array = new Array(Game.boardSize.cellsHigh);
+    for (let i = 0; i < this.array.length; i++) {
+      this.array[i] = new Array(Game.boardSize.cellsWide).fill(0);
+    }
 
     this.generateCells();
   }
@@ -80,6 +82,8 @@ export default class Grid {
   // ------------------
 
   private validateDropSite(e: MouseEvent) {
+    if (!game.activeShip) return;
+
     const target = e.target as HTMLDivElement;
     const row = Number(target.getAttribute('row'));
     const col = Number(target.getAttribute('col'));
@@ -96,8 +100,19 @@ export default class Grid {
     }
 
     if (validSpot) {
-      // Get a reference to the lead cell
-      this.leadCell = this.cellElements[row * Game.boardSize.cellsWide + col + cellsToSelect[0]];
+      // Update the valid coordinates the ship is hovering over
+      this.occupyingCoordinates = cellsToSelect.reduce((acc, offsetIndex) => {
+        acc.push({ row: row, col: col + offsetIndex });
+        return acc;
+      }, []);
+
+      // Update the valid elements the ship is hovering over
+      this.occupyingCellElements = this.occupyingCoordinates.reduce((acc, coordinates) => {
+        const { row, col } = coordinates;
+        acc.push(this.cellElements[row * Game.boardSize.cellsWide + col]);
+
+        return acc;
+      }, []);
 
       game.activeShip.validSpaceToDrop = true;
     } else {

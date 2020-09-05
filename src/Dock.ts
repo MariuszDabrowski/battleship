@@ -9,7 +9,9 @@ export default class Dock {
 
   public populateDock(ships: Ship[]) {
     const shipsFragment = new DocumentFragment();
-    ships.forEach((ship) => shipsFragment.appendChild(ship.shipElement));
+    ships.forEach((ship) => {
+      shipsFragment.appendChild(ship.shipOutlineElement);
+    });
     this.dockElement.appendChild(shipsFragment);
   }
 }

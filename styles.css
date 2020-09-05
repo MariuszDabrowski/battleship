@@ -43,8 +43,13 @@ body {
 .grid__cell {
   width: var(--grid-cell-size);
   height: var(--grid-cell-size);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.4);
-  border-right: 1px solid rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  border-right: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.grid__cell--lead {
+  position: relative;
+  z-index: 10;
 }
 
 /* ---- */
@@ -62,11 +67,22 @@ body {
 /* Ship */
 /* ---- */
 
-.ship {
-  background: #282c2e;
+.ship-outline {
+  border: 1px dashed rgba(0, 0, 0, 0.3);
   border-radius: 50% 10% 10% 50%;
 }
 
-.ship + .ship {
+.ship-outline + .ship-outline {
   margin-top: 2rem;
+}
+
+.ship {
+  background: #282c2e;
+  border-radius: 50% 10% 10% 50%;
+  position: relative;
+  z-index: 100;
+}
+
+.ship-outline .ship {
+  transform: translate(-1px, -1px);
 }

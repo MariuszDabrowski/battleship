@@ -2,10 +2,13 @@ import { Game } from './Game';
 import { game } from './index';
 
 export default class Ship {
+  public shipOutlineElement: HTMLDivElement;
   public shipElement: HTMLDivElement;
   private shipClickOffset: { x: number; y: number } = { x: 0, y: 0 };
   public cellsToSelect: number[] = [];
   public validSpaceToDrop = false;
+  public occupyingCells: HTMLDivElement[] = [];
+  public occupyingCoordinates: { row: number; col: number }[] = [];
 
   // -----------
   // Constructor
@@ -13,6 +16,7 @@ export default class Ship {
 
   constructor(public size: [length: number, width: number]) {
     this.createShipDiv();
+
     this.draggingShip = this.draggingShip.bind(this);
     this.dropShip = this.dropShip.bind(this);
   }
@@ -22,12 +26,22 @@ export default class Ship {
   // ---------------
 
   private createShipDiv() {
+    const width = `${this.size[0] * Game.gridCellSize}px`;
+    const height = `${this.size[1] * Game.gridCellSize}px`;
+
     const shipElement = document.createElement('div');
     shipElement.classList.add('ship');
-    shipElement.style.width = `${this.size[0] * Game.gridCellSize}px`;
-    shipElement.style.height = `${this.size[1] * Game.gridCellSize}px`;
+    shipElement.style.width = width;
+    shipElement.style.height = height;
     shipElement.addEventListener('mousedown', this.pickupShip.bind(this));
     this.shipElement = shipElement;
+
+    const shipOutlineElement = document.createElement('div');
+    shipOutlineElement.classList.add('ship-outline');
+    shipOutlineElement.style.width = width;
+    shipOutlineElement.style.height = height;
+    shipOutlineElement.appendChild(this.shipElement);
+    this.shipOutlineElement = shipOutlineElement;
   }
 
   // -----------
@@ -57,17 +71,14 @@ export default class Ship {
     // Enable ability to move the ship
     document.addEventListener('mousemove', this.draggingShip);
     document.addEventListener('mouseup', this.dropShip);
-  }
 
-  // --------------------
-  // Update ship position
-  // --------------------
-
-  private updateShipsPosition(e: MouseEvent) {
-    const newX = (e.clientX - this.shipElement.offsetLeft - this.shipClickOffset.x) / 10;
-    const newY = (e.clientY - this.shipElement.offsetTop - this.shipClickOffset.y) / 10;
-
-    this.shipElement.style.transform = `translate(${newX}rem, ${newY}rem)`;
+    // Clear up grid spots ship was occupying
+    if (this.occupyingCoordinates) {
+      this.occupyingCoordinates.forEach((coordinate) => {
+        const { row, col } = coordinate;
+        game.grid.array[row][col] = 0;
+      });
+    }
   }
 
   // -------------
@@ -78,22 +89,80 @@ export default class Ship {
     this.updateShipsPosition(e);
   }
 
+  // --------------------
+  // Update ship position
+  // --------------------
+
+  private updateShipsPosition(e: MouseEvent) {
+    const offsetParent = this.shipElement.offsetParent as HTMLDivElement;
+    const offsetLeft = this.shipElement.offsetLeft || offsetParent.offsetLeft;
+    const offsetTop = this.shipElement.offsetTop || offsetParent.offsetTop;
+
+    const newX = (e.clientX - offsetLeft - this.shipClickOffset.x) / 10;
+    const newY = (e.clientY - offsetTop - this.shipClickOffset.y) / 10;
+
+    this.shipElement.style.transform = `translate(${newX}rem, ${newY}rem)`;
+  }
+
   // ---------
   // Drop ship
   // ---------
 
   private dropShip(e: MouseEvent) {
-    // Clean up event listeners
     document.removeEventListener('mousemove', this.draggingShip);
     document.removeEventListener('mouseup', this.dropShip);
 
+    game.activeShip = null;
+
     if (this.validSpaceToDrop) {
-      this.shipElement.style.transform = '';
-      game.grid.leadCell.appendChild(this.shipElement);
+      this.restShipInNewSpace();
     } else {
+      // Return to last valid position
       this.shipElement.style.transform = '';
+
+      // Remark the array
+      if (this.occupyingCoordinates) {
+        this.occupyingCoordinates.forEach((coordinate) => {
+          const { row, col } = coordinate;
+          game.grid.array[row][col] = 1;
+        });
+      }
     }
 
     this.shipElement.style.pointerEvents = 'all';
+  }
+
+  // ----------------------
+  // Rest ship in new space
+  // ----------------------
+
+  private restShipInNewSpace() {
+    const leadClass = 'grid__cell--lead';
+
+    // Clear out old ship location info
+    if (this.occupyingCells[0]) {
+      this.occupyingCells[0].classList.remove(leadClass);
+
+      // Empty array cells that are now freed up
+      this.occupyingCoordinates.forEach((coordinate) => {
+        const { row, col } = coordinate;
+        game.grid.array[row][col] = 0;
+      });
+    }
+
+    // Update ship location information
+    this.occupyingCells = game.grid.occupyingCellElements;
+    this.occupyingCoordinates = game.grid.occupyingCoordinates;
+    this.occupyingCells[0].classList.add(leadClass);
+
+    // Update array information with new ship location
+    this.occupyingCoordinates.forEach((coordinate) => {
+      const { row, col } = coordinate;
+      game.grid.array[row][col] = 1;
+    });
+
+    // Drop into the grid
+    this.shipElement.style.transform = '';
+    this.occupyingCells[0].appendChild(this.shipElement);
   }
 }
